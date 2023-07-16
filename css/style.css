@@ -8,10 +8,12 @@
   color: white;
 }
 
+
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
   -webkit-appearance: none;
 }
+
 
 /*Check!*/
 
@@ -163,6 +165,7 @@ input::-webkit-inner-spin-button {
   padding: 12px;
   background-color: rgba(255, 255, 255, 0.3);
   border-radius: 8px;
+  border: none;
 }
 
 .desktop_button_background svg {
