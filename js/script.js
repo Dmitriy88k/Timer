@@ -1,71 +1,162 @@
 const playBtn = document.getElementById('play_button');
 const stopBtn = document.getElementById('stop_button');
-const pause = document.getElementById('pause_button');
+const pauseBtn = document.getElementById('pause_button');
 
 const hourField = document.getElementById('hours');
 const minutesField = document.getElementById('minutes');
 const secondsField = document.getElementById('seconds');
 
+const resultInSeconds = document.getElementById('result_seconds');
 
-let startTimer = 0;
+// left side fields
+
+const leftHourField = document.getElementById('l_hours');
+const leftMinutesField = document.getElementById('l_minutes');
+const leftSecondsField = document.getElementById('l_seconds');
+
+const playBtn2 = document.getElementById('play_button_2');
+const stopBtn2 = document.getElementById('stop_button_2');
+const pauseBtn2 = document.getElementById('pause_button_2');
+
+let startTimer; // можно не объявлять
+let leftTime = localStorage.getItem('leftTime') || 0; // сколько секунд осталось
+
+if (Number(leftTime)) {
+  const { hours, minutes, seconds } = getHoursMinutesSeconds(Number(leftTime))
+
+  hourField.value = hours
+  minutesField.value = minutes
+  secondsField.value = seconds
+
+  leftHourField.value = hours
+  leftMinutesField.value = minutes
+  leftSecondsField.value = seconds
+}
+
+// utility functions
+function resetFields() {
+  // reset values
+
+  hourField.value = '';
+  minutesField.value = '';
+  secondsField.value = '';
+
+  // enable inputs
+  hourField.disabled = false
+  minutesField.disabled = false
+  secondsField.disabled = false
+}
 
 function timer() {
-  //??? если hours, minutes and seconds = 0, то сбросить все показатели на нули.
-  if(hourField.value == 0 && minutesField.value == 0 && secondsField.value == 0) {
-    hourField.value = "00";
-    minutesField.value = "00";
-    secondsField.value = "00";
-  }
-  //если в секундной строке не ноль то отсчитывается -1 каждую секунду
-  else if (secondsField.value != 0) {
-    secondsField.value--;
-  }
-  //объяснить логику действий?
-  else if (minutesField.value !=0 && secondsField.value == 0) {
-    secondsField.value = 59;
-    minutesField.value--;
-  }
-  else if(hourField.value != 0 && minutesField.value == 0 && secondsField.value == 0) {
-    
-    minutesField.value = 59;
-    secondsField.value = 59;
-    hourField.value--;
-    
-  }
-  return;
- 
-}
+  console.log('timer is running')
 
+  // disable inputs
+  hourField.disabled = true
+  minutesField.disabled = true
+  secondsField.disabled = true
+
+  // decrease left time
+  leftTime--;
+
+  if(leftTime === 0) {
+    stopTimer();
+
+    return
+  }
+
+  const { hours, minutes, seconds } = getHoursMinutesSeconds(leftTime)
+
+  hourField.value = hours
+  minutesField.value = minutes
+  secondsField.value = seconds
+
+  // update left side fields
+
+  leftHourField.value = hours
+  leftMinutesField.value = minutes
+  leftSecondsField.value = seconds
+
+  resultInSeconds.innerHTML = leftTime;
+
+  return;
+}
 
 //??? Полностью объяснить действия этой функции. а)Что делает "clearInterval" б)Если StartTimer уже равен "0" зачем очищать интервал.
-
 function stopTimer() {
   clearInterval(startTimer);
+  startTimer = undefined;
+  leftTime = 0;
+
+  localStorage.removeItem('leftTime')
+
+  resetFields();
 }
 
-
-//Когда нажимаем на кнопку "Play", то вызываем функцию которая запускает "Timer" и обновляет данные через каждую секунду. 
+// Когда нажимаем на кнопку "Play", то вызываем функцию которая запускает "Timer" и обновляет данные через каждую секунду. 
 //??? объяснить строку с startTimer = setInterval(function(){ (как она работает)
 playBtn.addEventListener('click', function() {
-  function startInterval() {
-    startTimer = setInterval(function(){
-      timer();
-    }, 1000);
+  // проверка
+  if (startTimer) {
+    return
+    // clearInterval(startTimer);
   }
-  startInterval();
+
+  leftTime = calculateLeftTime(hourField.value, minutesField.value, secondsField.value);
+
+  if (leftTime === 0) {
+    return alert('Set timer value!')
+  }
+
+  if (Number(hourField.value) < 0 || Number(minutesField.value) < 0 || Number(secondsField.value) < 0) {
+    resetFields();
+
+    return alert('Timer value should be positive!');
+  }
+
+  startTimer = setInterval(function() {
+    timer();
+  }, 100);
 })
 
+playBtn2.addEventListener('click', () => {
+  if (startTimer) {
+    return
+    // clearInterval(startTimer);
+  }
+
+  leftTime = calculateLeftTime(leftHourField.value, leftMinutesField.value, leftSecondsField.value);
+
+  if (leftTime === 0) {
+    return alert('Set timer value!')
+  }
+
+  if (Number(leftHourField.value) < 0 || Number(leftMinutesField.value) < 0 || Number(leftSecondsField.value) < 0) {
+    resetFields();
+
+    return alert('Timer value should be positive!');
+  }
+
+  startTimer = setInterval(function() {
+    timer();
+  }, 100);
+})
 
 //Когда нажимаем на кнопку "Stop", то вызываем функцию (StopTimer) которая останавливает "Timer" и сбрасывает все значения к нулю.
 stopBtn.addEventListener('click', function(){
-  hourField.value = "00";
-  minutesField.value = "00";
-  secondsField.value = "00";
   stopTimer();
 })
 
+pauseBtn.addEventListener('click', function() {
+  clearInterval(startTimer);
+  startTimer = undefined;
+})
 
-
+window.addEventListener('beforeunload', () => {
+  // save current left time
+  if (leftTime) {
+    localStorage.setItem('leftTime', leftTime)
+  }
+})
 
 
 //Выевленные проблемы и вопросы к Алмату 
