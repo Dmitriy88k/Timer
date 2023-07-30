@@ -1,68 +1,118 @@
 const playBtn = document.getElementById('play_button');
 const stopBtn = document.getElementById('stop_button');
-const pause = document.getElementById('pause_button');
+const pauseBtn = document.getElementById('pause_button');
 
 const hourField = document.getElementById('hours');
 const minutesField = document.getElementById('minutes');
 const secondsField = document.getElementById('seconds');
 
 
-let startTimer = 0;
+let startTimer;
+let leftTime;
+
 
 function timer() {
-  //??? если hours, minutes and seconds = 0, то сбросить все показатели на нули.
-  if(hourField.value == 0 && minutesField.value == 0 && secondsField.value == 0) {
-    hourField.value = "00";
-    minutesField.value = "00";
-    secondsField.value = "00";
+  console.log("running timer");
+
+  // disable inputs
+  hourField.disabled = true;
+  minutesField.disabled = true;
+  secondsField.disabled = true;
+
+  leftTime--;
+
+  if(leftTime === 0) {
+    stopTimer();
+    resetFields();
   }
-  //если в секундной строке не ноль то отсчитывается -1 каждую секунду
+
   else if (secondsField.value != 0) {
     secondsField.value--;
   }
-  //объяснить логику действий?
+ 
   else if (minutesField.value !=0 && secondsField.value == 0) {
     secondsField.value = 59;
     minutesField.value--;
   }
-  else if(hourField.value != 0 && minutesField.value == 0 && secondsField.value == 0) {
-    
+
+  else if(hourField.value != 0 && minutesField.value == 0 && secondsField.value == 0) {  
     minutesField.value = 59;
     secondsField.value = 59;
     hourField.value--;
-    
   }
+
   return;
- 
+
 }
-
-
-//??? Полностью объяснить действия этой функции. а)Что делает "clearInterval" б)Если StartTimer уже равен "0" зачем очищать интервал.
 
 function stopTimer() {
   clearInterval(startTimer);
+  startTimer = undefined;
+}
+
+function resetFields() {
+  //reset values
+  hourField.value = "";
+  minutesField.value = "";
+  secondsField.value = "";
+
+  //enable inputs
+  hourField.disabled = false;
+  minutesField.disabled = false;
+  secondsField.disabled = false;
+}
+
+function calculateLeftTime() {
+  const seconds = Number(secondsField.value);
+  const minutes = Number(minutesField.value);
+  const hours = Number(hourField.value);
+
+  return seconds + (minutes * 60) + (hours * 60 * 60);
+
 }
 
 
 //Когда нажимаем на кнопку "Play", то вызываем функцию которая запускает "Timer" и обновляет данные через каждую секунду. 
-//??? объяснить строку с startTimer = setInterval(function(){ (как она работает)
 playBtn.addEventListener('click', function() {
-  function startInterval() {
-    startTimer = setInterval(function(){
-      timer();
-    }, 1000);
+  
+
+  //??? при нажатии на кнопку старт, если startTimer = 0 мы пропускаем 1-ый if statement и переходим ко 2-му и запускаем интервал
+  //??? при нажатии на кнопку старт, если startTimer = 1 мы просто выходим из функции и ничего не делаем (не переходим ко 2-му if statement и при этом не запускаем интервал)
+  if (startTimer) {
+    return;
   }
-  startInterval();
+
+  leftTime = calculateLeftTime();
+  console.log(leftTime);
+
+  if(leftTime === 0) {
+    return alert('Set timer value!');
+  }  
+
+  if(Number(hourField.value < 0) || Number(minutesField.value < 0) || Number(secondsField.value < 0)) {
+    resetFields();
+    return alert('The value must be positive');
+  }
+
+  startTimer = setInterval(function(){
+    timer();
+  }, 1000);
+
 })
 
 
 //Когда нажимаем на кнопку "Stop", то вызываем функцию (StopTimer) которая останавливает "Timer" и сбрасывает все значения к нулю.
 stopBtn.addEventListener('click', function(){
-  hourField.value = "00";
-  minutesField.value = "00";
-  secondsField.value = "00";
   stopTimer();
+  resetFields();
 })
+
+pauseBtn.addEventListener('click', function() {
+  clearInterval(startTimer);
+  startTimer = undefined;
+})
+
+
 
 
 
@@ -73,3 +123,4 @@ stopBtn.addEventListener('click', function(){
 // 2) Почему когда мы ставим в input значения, почему ограничение не срабатвывают? maxlength = "2"
 // 3) Как сделать Pause? 
 // 4) Как сделать синхронным два таймера? 
+// 5) Когда нажимаем старт несколько раз таймер бежит в два раза быстрее
